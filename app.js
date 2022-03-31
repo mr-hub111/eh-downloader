@@ -7,7 +7,7 @@ const fs = require('fs');
  * Given a URL, get the page details from the page
  * @template T
  * @param {string} [url] - The URL of the page to scrape.
- * @param {(log: {logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called with a string parameter.
+ * @param {(log: {logDate: Date, logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called with a string parameter.
  * @returns {url: string; pageDetails: Array<{page: string, url: string}>;}
  */
 const getPageDetails = async (url = '', logCallback) => {
@@ -40,6 +40,7 @@ const getPageDetails = async (url = '', logCallback) => {
     if (logCallback) {
         logCallback(
             {
+                logDate: new Date(),
                 logType: 'info',
                 url: url,
                 descriptions: `contains ${pageDetails.length} pages`
@@ -55,7 +56,7 @@ const getPageDetails = async (url = '', logCallback) => {
  * Get the gallery details from the page
  * @template T
  * @param {string} [url] - The url of the page you want to scrape.
- * @param {(log: {logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called with a string parameter.
+ * @param {(log: {logDate: Date, logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called with a string parameter.
  * @returns {Promise<{url: string; pageGalleryDetails: string[];}>} an object with the url and the array of the image urls.
  */
 const getPageGelleryDetails = async (url = '', logCallback) => {
@@ -81,6 +82,7 @@ const getPageGelleryDetails = async (url = '', logCallback) => {
     if (logCallback) {
         logCallback(
             {
+                logDate: new Date(),
                 logType: 'info',
                 url: url,
                 descriptions: `contains ${pageGalleryDetails.length} images`
@@ -96,7 +98,7 @@ const getPageGelleryDetails = async (url = '', logCallback) => {
  * Get the image url from the page
  * @template T
  * @param {string} [url] - The URL of the image.
- * @param {(log: {logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called with the log message.
+ * @param {(log: {logDate: Date, logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called with the log message.
  * @returns {Promise<string>} The image source.
  */
 const getImageDetail = async (url = '', logCallback) => {
@@ -117,6 +119,7 @@ const getImageDetail = async (url = '', logCallback) => {
     if (logCallback) {
         logCallback(
             {
+                logDate: new Date(),
                 logType: 'info',
                 url: url,
                 descriptions: `detect #img.src`
@@ -134,7 +137,7 @@ const getImageDetail = async (url = '', logCallback) => {
  * @param {string} [url] - The URL of the image to download.
  * @param {string} downloadFolder - The folder where the image will be downloaded.
  * @param {string} [fileName] - The name of the file to be saved.
- * @param {(log: {logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called with the local file path of the downloaded
+ * @param {(log: {logDate: Date, logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called with the local file path of the downloaded
  * image.
  * @returns The file path to the downloaded image.
  */
@@ -172,6 +175,7 @@ const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toS
     if (logCallback) {
         logCallback(
             {
+                logDate: new Date(),
                 logType: 'info',
                 url: url,
                 descriptions: `write file is complete at path ${wr}`
@@ -190,7 +194,7 @@ const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toS
  * @param {string} [urlImage] - The URL of the image to download.
  * @param {string} [downloadFolder] - The folder where the images will be downloaded.
  * @param {number} [retryDownload=5] - The number of retry to download the image.
- * @param {(log: {logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called with the downloaded image path.
+ * @param {(log: {logDate: Date, logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called with the downloaded image path.
  * @returns {Promise<string>} The image path.
  */
 const handleDownloadImage = async (imageNumber = 0, urlImage = '', downloadFolder = '', retryDownload = 5, logCallback) => {
@@ -203,6 +207,7 @@ const handleDownloadImage = async (imageNumber = 0, urlImage = '', downloadFolde
                 if (logCallback) {
                     logCallback(
                         {
+                            logDate: new Date(),
                             logType: 'warning',
                             imageNumber: imageNumber,
                             url: url,
@@ -216,6 +221,7 @@ const handleDownloadImage = async (imageNumber = 0, urlImage = '', downloadFolde
         if (logCallback) {
             logCallback(
                 {
+                    logDate: new Date(),
                     logType: 'info',
                     imageNumber: imageNumber,
                     urlImage: urlImage,
@@ -234,7 +240,7 @@ const handleDownloadImage = async (imageNumber = 0, urlImage = '', downloadFolde
  * @template T
  * @param {string} [url] - The URL of the page to be scraped.
  * @param {Array<{page: string, url: string}>} [pageURLs] - an array of page URLs that we want to crawl.
- * @param {(log: {logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called when the script is running.
+ * @param {(log: {logDate: Date, logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called when the script is running.
  * @returns {Promise<Array<{page: string, url: string}>>} an array of objects that contain the page and url.
  */
 const initPage = async (url = '', pageURLs = [], logCallback) => {
@@ -253,6 +259,7 @@ const initPage = async (url = '', pageURLs = [], logCallback) => {
     if (logCallback) {
         logCallback(
             {
+                logDate: new Date(),
                 logType: 'info',
                 url: url,
                 descriptions: `init page`
@@ -268,7 +275,7 @@ const initPage = async (url = '', pageURLs = [], logCallback) => {
  * It downloads all the images from a given URL.
  * @template T
  * @param {string} [url] - The URL of the gallery you want to download.
- * @param {(log: {logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} [logCallback] - A function that will be called with the log data.
+ * @param {(log: {logDate: Date, logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} [logCallback] - A function that will be called with the log data.
  * @returns The downloadALL is an array of promises. Each promise is a download of an image.
  */
 const downloadEH = async (url = '', logCallback = (log) => console.log({ data: log })) => {
@@ -279,6 +286,7 @@ const downloadEH = async (url = '', logCallback = (log) => console.log({ data: l
     if (logCallback) {
         logCallback(
             {
+                logDate: new Date(),
                 logType: 'info',
                 url: url,
                 descriptions: `contains page ${pageLists.length}`
@@ -294,6 +302,7 @@ const downloadEH = async (url = '', logCallback = (log) => console.log({ data: l
         if (logCallback) {
             logCallback(
                 {
+                    logDate: new Date(),
                     logType: 'info',
                     url: url,
                     pageNumber: index + 1,
