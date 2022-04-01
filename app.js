@@ -210,7 +210,7 @@ const handleDownloadImage = async (imageNumber = 0, urlImage = '', downloadFolde
                             logDate: new Date(),
                             logType: 'warning',
                             imageNumber: imageNumber,
-                            url: url,
+                            url: urlImage,
                             descriptions: `retry download (${retryDownload})`
                         }
                     );
