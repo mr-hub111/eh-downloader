@@ -199,7 +199,7 @@ const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toS
  */
 const handleDownloadImage = async (imageNumber = 0, urlImage = '', downloadFolder = '', retryDownload = 5, logCallback) => {
     if (retryDownload === 0) {
-        throw Error(`Download is out of retry`);
+        throw Error(`urlImage: ${urlImage} : Download is out of retry`);
     }
     else {
         const downloadedImage = await downloadImage(urlImage, downloadFolder, String(imageNumber).padStart(3, '0'))
