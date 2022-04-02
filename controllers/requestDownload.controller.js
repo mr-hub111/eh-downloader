@@ -52,7 +52,7 @@ const requestDownloadController = async (req, res) => {
                 downloadSessionDB[urlString].inprogress = false;
             });
 
-        res.status(200).json(downloadSessionDB[urlString]);
+        res.status(200).json({ downloadSessionDB: downloadSessionDB[urlString] });
         return;
     }
     res.status(200).json({ downloadSessionDB: downloadSessionDB[urlString] });
