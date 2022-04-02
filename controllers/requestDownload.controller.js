@@ -25,9 +25,8 @@ const requestDownloadController = async (req, res) => {
 
     if (
         (downloadSessionDB[urlString].latestUpdate === null) ||
-        (downloadSessionDB[urlString].inprogress === false && ((new Date().valueOf() - new Date(downloadSessionDB[urlString].latestUpdate).valueOf()) > 300000)) ||
-        (downloadSessionDB[urlString].status === 'error' && ((new Date().valueOf() - new Date(downloadSessionDB[urlString].latestUpdate).valueOf()) > 100000)) ||
-        (downloadSessionDB[urlString].inprogress === false && downloadSessionDB[urlString].status === 'ok' && ((new Date().valueOf() - new Date(downloadSessionDB[urlString].latestUpdate).valueOf()) > 100000))
+        (downloadSessionDB[urlString].status === 'error' && ((new Date().valueOf() - new Date(downloadSessionDB[urlString].latestUpdate).valueOf()) > 100000 * 5)) ||
+        ( downloadSessionDB[urlString].status === 'ok' && downloadSessionDB[urlString].inprogress === false && ((new Date().valueOf() - new Date(downloadSessionDB[urlString].latestUpdate).valueOf()) > 100000 * 60))
     ) {
         downloadSessionDB[urlString].latestUpdate = new Date();
         downloadSessionDB[urlString].status = 'downloading';
