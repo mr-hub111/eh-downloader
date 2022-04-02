@@ -130,37 +130,35 @@ const getImageDetail = async (url = '', logCallback) => {
     return imageAttrSrc;
 };
 
-
 /**
- * Downloads an image from a URL and saves it to a local file
- * @template T
- * @param {string} [url] - The URL of the image to download.
- * @param {string} downloadFolder - The folder where the image will be downloaded.
- * @param {string} [fileName] - The name of the file to be saved.
- * @param {(log: {logDate: Date, logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called with the local file path of the downloaded
- * image.
- * @returns The file path to the downloaded image.
+ * 
+ * @param {string} imageURL 
+ * @param {string} fileName 
+ * @param {import("axios").AxiosRequestConfig} axiosConfig 
+ * @returns 
  */
-const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toString(), logCallback) => {
+const fetchImage = async (imageURL, fileName, axiosConfig, logCallback) => {
     if (logCallback) {
         logCallback(
             {
                 logDate: new Date(),
                 logType: 'info',
-                url: url,
+                url: imageURL,
                 fileName: fileName,
                 descriptions: `fetching image`
             }
         );
     }
+
     /**
      * @type {import("axios").AxiosRequestConfig}
      */
-    const config = {
+     const config = {
         method: 'get',
-        url: url,
+        url: imageURL,
         responseType: 'stream',
-        timeout: 60000
+        timeout: 60000,
+        ...axiosConfig
     };
 
     const response = await axios(config);
@@ -170,13 +168,28 @@ const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toS
             {
                 logDate: new Date(),
                 logType: 'info',
-                url: url,
+                url: imageURL,
                 fileName: fileName,
                 descriptions: `fetch image is ok`
             }
         );
     }
 
+    return response;
+};
+
+
+/**
+ * Write the image to the local file system
+ * @template T
+ * @param {string} [imageURL] - The URL of the image to download.
+ * @param {string} downloadFolder - The folder where the image will be saved.
+ * @param {string} fileName - The name of the file to be downloaded.
+ * @param {import("axios").AxiosResponse} response - The response object from the request.
+ * @param {(log: {logDate: Date, logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called when the log is generated.
+ * @returns The promise is returned.
+ */
+const writeFile = async (imageURL, downloadFolder, fileName, response, logCallback) => {
     /**
      * @type {string}
      */
@@ -194,7 +207,7 @@ const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toS
                             {
                                 logDate: new Date(),
                                 logType: 'info',
-                                url: url,
+                                url: imageURL,
                                 fileName: fileName,
                                 descriptions: `pipe is timeout`
                             }
@@ -210,20 +223,20 @@ const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toS
                         {
                             logDate: new Date(),
                             logType: 'info',
-                            url: url,
+                            url: imageURL,
                             fileName: fileName,
                             descriptions: `writing file image`
                         }
                     );
                 }
             })
-            wfs.on('unpipe', () => {
+            wfs.on('finish', () => {
                 if (logCallback) {
                     logCallback(
                         {
                             logDate: new Date(),
                             logType: 'info',
-                            url: url,
+                            url: imageURL,
                             fileName: fileName,
                             descriptions: `write file image is ok`
                         }
@@ -239,7 +252,7 @@ const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toS
                         {
                             logDate: new Date(),
                             logType: 'warning',
-                            url: url,
+                            url: imageURL,
                             fileName: fileName,
                             descriptions: `write file image error`
                         }
@@ -249,7 +262,7 @@ const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toS
             });
 
             await response.data.pipe(await wfs);
-            
+
         } catch (error) {
             reject(error);
         }
@@ -260,7 +273,7 @@ const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toS
             {
                 logDate: new Date(),
                 logType: 'info',
-                url: url,
+                url: imageURL,
                 fileName: fileName,
                 descriptions: `write file is complete at path ${wr}`
             }
@@ -268,6 +281,52 @@ const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toS
     }
 
     return wr;
+};
+
+
+/**
+ * It writes the image to the database.
+ * @param {string} url - The URL of the image.
+ * @param {string} imageURL - The URL of the image that was downloaded.
+ * @param {string} fileName - The name of the file that will be saved in the database.
+ * @param {import("axios").AxiosResponse} response - The response from the steamPipe.
+ * @returns The downloadStorageDB object.
+ */
+const writeInDB = async (url, imageURL, fileName, response) => {
+    const { downloadStorageDB } = require("./engines/immDBs");
+    const newFileName = `${fileName}.jpeg`;
+    if (!downloadStorageDB[url]) {
+        downloadStorageDB[url] = {
+            aStorage: {},
+            tStorage: {}
+        };
+    }
+
+    downloadStorageDB[url].tStorage[newFileName] = {
+        url: url,
+        imageURL: imageURL,
+        steamPipe: response.data,
+    };
+
+    return downloadStorageDB[url];
+};
+
+
+/**
+ * Downloads an image from a URL and saves it to a local file
+ * @template T
+ * @param {string} url - The URL of the image.
+ * @param {string} [imageURL] - The URL of the image to download.
+ * @param {string} downloadFolder - The folder where the image will be downloaded.
+ * @param {string} [fileName] - The name of the file to be saved.
+ * @param {(log: {logDate: Date, logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called with the local file path of the downloaded
+ * image.
+ * @returns The file path to the downloaded image.
+ */
+const downloadImage = async (url, imageURL = '', downloadFolder, fileName = Date.now().toString(), logCallback) => {
+    // const writeFileResult = await writeFile(imageURL, downloadFolder, fileName, await fetchImage(imageURL, fileName, { responseType: 'stream' }, logCallback), logCallback);
+    const writeInDBResult = await writeInDB(url, imageURL, fileName, await fetchImage(imageURL, fileName, { responseType: 'arraybuffer' }, logCallback));
+    return fileName;
 };
 
 
@@ -286,7 +345,7 @@ const handleDownloadImage = async (imageNumber = 0, urlImage = '', downloadFolde
         throw Error(`urlImage: ${urlImage} : Download is out of retry`);
     }
     else {
-        const downloadedImage = await downloadImage(urlImage, downloadFolder, String(imageNumber).padStart(3, '0'), logCallback)
+        const downloadedImage = await downloadImage(url, urlImage, downloadFolder, String(imageNumber).padStart(3, '0'), logCallback)
             .catch(async () => {
                 if (logCallback) {
                     logCallback(
@@ -297,7 +356,7 @@ const handleDownloadImage = async (imageNumber = 0, urlImage = '', downloadFolde
                             url: urlImage,
                             descriptions: `retry download (${retryDownload})`
                         }
-                    );                    
+                    );
                 }
                 const responseGallery = await getPageGelleryDetails(url, logCallback);
                 const urlImageX = await getImageDetail(responseGallery.pageGalleryDetails[galleryIndex], logCallback);
