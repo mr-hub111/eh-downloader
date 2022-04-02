@@ -426,7 +426,7 @@ const initPage = async (url = '', pageURLs = [], logCallback) => {
 const downloadEH = async (url = '', logCallback = (log) => console.log({ data: log })) => {
     const URLpaths = new URL(url).pathname.split('/').filter(w => w);
     const downloadFolder = path.join(__dirname, 'img', URLpaths[1], URLpaths[2]);
-    fs.mkdirSync(downloadFolder, { recursive: true, mode: 0o777 })
+    // fs.mkdirSync(downloadFolder, { recursive: true, mode: 0o777 })
     const pageLists = await initPage(url);
     if (logCallback) {
         logCallback(
