@@ -22,8 +22,12 @@ const requestDownloadController = async (req, res) => {
             errors: [],
         };
     }
-    
-    if (downloadSessionDB[urlString].inprogress === false && ( (new Date(downloadSessionDB[urlString].latestUpdate).valueOf() - new Date().valueOf()) > 300000) || downloadSessionDB[urlString].latestUpdate === null) {
+
+    if (
+        (downloadSessionDB[urlString].latestUpdate === null) ||
+        (downloadSessionDB[urlString].inprogress === false && ((new Date(downloadSessionDB[urlString].latestUpdate).valueOf() - new Date().valueOf()) > 300000)) ||
+        (downloadSessionDB[urlString].status === 'error' && ((new Date(downloadSessionDB[urlString].latestUpdate).valueOf() - new Date().valueOf()) > 100000))
+    ) {
         downloadSessionDB[urlString].latestUpdate = new Date();
         downloadSessionDB[urlString].status = 'downloading';
         downloadSessionDB[urlString].inprogress = true;
