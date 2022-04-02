@@ -2,6 +2,7 @@ const express = require("express");
 const requestDownloadMiddleware = require("./middlewares/requestDownload.middleware");
 const errorMiddleware = require("./middlewares/error.middleware");
 const requestDownloadController = require("./controllers/requestDownload.controller");
+const eventsDownloadController = require("./controllers/eventsDownload.controller");
 const server = express();
 
 server.get('/',
@@ -9,8 +10,10 @@ server.get('/',
     requestDownloadController,
 );
 
-server.get('/events',
-requestDownloadMiddleware);
+server.get('/zip',
+    requestDownloadMiddleware,
+    eventsDownloadController
+);
 
 server.use(errorMiddleware);
 
