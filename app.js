@@ -2,6 +2,7 @@ const axios = require('axios').default;
 const cheerio = require('cheerio');
 const path = require('path');
 const fs = require('fs');
+const { downloadStorageDB } = require("./engines/immDBs");
 
 /**
  * Given a URL, get the page details from the page
@@ -293,7 +294,6 @@ const writeFile = async (imageURL, downloadFolder, fileName, response, logCallba
  * @returns The downloadStorageDB object.
  */
 const writeInDB = async (url, imageURL, fileName, response) => {
-    const { downloadStorageDB } = require("./engines/immDBs");
     const newFileName = `${fileName}.jpeg`;
     if (!downloadStorageDB[url]) {
         downloadStorageDB[url] = {
