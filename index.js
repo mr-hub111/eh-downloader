@@ -17,6 +17,8 @@ server.get('/zip',
 
 server.use(errorMiddleware);
 
-server.listen(5000, () => {
-    console.info(`Server is listen at port 80, http://localhost:5000`)
+const serverPort = process.env.PORT || 5000;
+
+server.listen(serverPort, () => {
+    console.info(`Server is listen at port 80, http://localhost:${serverPort}`)
 });
