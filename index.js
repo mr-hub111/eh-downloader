@@ -17,6 +17,6 @@ server.get('/zip',
 
 server.use(errorMiddleware);
 
-server.listen(8081, () => {
-    console.info(`Server is listen at port 8081, http://localhost:8081`)
+server.listen(80, () => {
+    console.info(`Server is listen at port 80, http://localhost:80`)
 });
