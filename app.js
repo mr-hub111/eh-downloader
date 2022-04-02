@@ -142,6 +142,17 @@ const getImageDetail = async (url = '', logCallback) => {
  * @returns The file path to the downloaded image.
  */
 const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toString(), logCallback) => {
+    if (logCallback) {
+        logCallback(
+            {
+                logDate: new Date(),
+                logType: 'info',
+                url: url,
+                fileName: fileName,
+                descriptions: `fetching image`
+            }
+        );
+    }
     /**
      * @type {import("axios").AxiosRequestConfig}
      */
@@ -154,19 +165,91 @@ const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toS
 
     const response = await axios(config);
 
+    if (logCallback) {
+        logCallback(
+            {
+                logDate: new Date(),
+                logType: 'info',
+                url: url,
+                fileName: fileName,
+                descriptions: `fetch image is ok`
+            }
+        );
+    }
+
     /**
      * @type {string}
      */
-    const wr = await new Promise((reslove, reject) => {
+    const wr = await new Promise(async (reslove, reject) => {
         try {
             const localFilePath = path.resolve(__dirname, downloadFolder, `${fileName}.jpeg`);
-            const w = response.data.pipe(fs.createWriteStream(localFilePath));
-            w.on('finish', () => {
+            const wfs = fs.createWriteStream(localFilePath, { autoClose: true, emitClose: true });
+
+            let isFinished = false;
+
+            wfs.timeout = setTimeout(() => {
+                if (!isFinished) {
+                    if (logCallback) {
+                        logCallback(
+                            {
+                                logDate: new Date(),
+                                logType: 'info',
+                                url: url,
+                                fileName: fileName,
+                                descriptions: `pipe is timeout`
+                            }
+                        );
+                    }
+                    reject(Error(`pipe is timeout`));
+                }
+            }, 60000);
+
+            wfs.on('pipe', () => {
+                if (logCallback) {
+                    logCallback(
+                        {
+                            logDate: new Date(),
+                            logType: 'info',
+                            url: url,
+                            fileName: fileName,
+                            descriptions: `writing file image`
+                        }
+                    );
+                }
+            })
+            wfs.on('unpipe', () => {
+                if (logCallback) {
+                    logCallback(
+                        {
+                            logDate: new Date(),
+                            logType: 'info',
+                            url: url,
+                            fileName: fileName,
+                            descriptions: `write file image is ok`
+                        }
+                    );
+                }
+                isFinished = true;
+                clearTimeout(wfs.timeout);
                 reslove(localFilePath);
             });
-            w.on('error', (error) => {
+            wfs.on('error', (error) => {
+                if (logCallback) {
+                    logCallback(
+                        {
+                            logDate: new Date(),
+                            logType: 'warning',
+                            url: url,
+                            fileName: fileName,
+                            descriptions: `write file image error`
+                        }
+                    );
+                }
                 reject(error);
             });
+
+            await response.data.pipe(await wfs);
+            
         } catch (error) {
             reject(error);
         }
@@ -178,6 +261,7 @@ const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toS
                 logDate: new Date(),
                 logType: 'info',
                 url: url,
+                fileName: fileName,
                 descriptions: `write file is complete at path ${wr}`
             }
         );
@@ -197,12 +281,12 @@ const downloadImage = async (url = '', downloadFolder, fileName = Date.now().toS
  * @param {(log: {logDate: Date, logType?: string, url?: string, urlImage?: string, pageNumber?: number, imageNumber?: number, descriptions?: descriptions}) => T} logCallback - A function that will be called with the downloaded image path.
  * @returns {Promise<string>} The image path.
  */
-const handleDownloadImage = async (imageNumber = 0, urlImage = '', downloadFolder = '', retryDownload = 5, logCallback) => {
+const handleDownloadImage = async (imageNumber = 0, urlImage = '', downloadFolder = '', retryDownload = 5, logCallback, url = '', galleryIndex = -1) => {
     if (retryDownload === 0) {
         throw Error(`urlImage: ${urlImage} : Download is out of retry`);
     }
     else {
-        const downloadedImage = await downloadImage(urlImage, downloadFolder, String(imageNumber).padStart(3, '0'))
+        const downloadedImage = await downloadImage(urlImage, downloadFolder, String(imageNumber).padStart(3, '0'), logCallback)
             .catch(async () => {
                 if (logCallback) {
                     logCallback(
@@ -213,9 +297,11 @@ const handleDownloadImage = async (imageNumber = 0, urlImage = '', downloadFolde
                             url: urlImage,
                             descriptions: `retry download (${retryDownload})`
                         }
-                    );
+                    );                    
                 }
-                return await handleDownloadImage(imageNumber, urlImage, downloadFolder, retryDownload - 1, logCallback);
+                const responseGallery = await getPageGelleryDetails(url, logCallback);
+                const urlImageX = await getImageDetail(responseGallery.pageGalleryDetails[galleryIndex], logCallback);
+                return await handleDownloadImage(imageNumber, urlImageX, downloadFolder, retryDownload - 1, logCallback, url, galleryIndex);
             });
 
         if (logCallback) {
@@ -294,8 +380,8 @@ const downloadEH = async (url = '', logCallback = (log) => console.log({ data: l
         );
     }
     let imageNumber = 0;
-
-    const downloadImageLists = [];
+    const imageCompleteLists = [];
+    let downloadImageLists = [];
     for (let index = 0; index < pageLists.length; index++) {
         const element = pageLists[index];
         const responseGallery = await getPageGelleryDetails(element.url);
@@ -310,31 +396,29 @@ const downloadEH = async (url = '', logCallback = (log) => console.log({ data: l
                 }
             );
         }
+
         for (let idx = 0; idx < responseGallery.pageGalleryDetails.length; idx++) {
             ++imageNumber;
             const elementImage = responseGallery.pageGalleryDetails[idx];
             const urlImage = await getImageDetail(elementImage);
-            downloadImageLists.push({ imageNumber, urlImage });
+            downloadImageLists.push({ imageNumber, urlImage, url: responseGallery.url, galleryIndex: idx });
         }
-    }
 
-    /**
-     * A loop that will download all the images from the given URL.
-     * @type {string[]}
-     */
-    const procALL = [];
-    for (let index = 0; index < downloadImageLists.length; index++) {
-        const element = downloadImageLists[index];
-        procALL.push(handleDownloadImage(element.imageNumber, element.urlImage, downloadFolder, 10, logCallback));
-    }
 
-    const downloadALL = await Promise.all(procALL);
+        for (let index = 0; index < downloadImageLists.length; index++) {
+            const element = downloadImageLists[index];
+            const al = await handleDownloadImage(element.imageNumber, element.urlImage, downloadFolder, 20, logCallback, element.url, element.galleryIndex)
+            imageCompleteLists.push(al);
+        }
+
+        downloadImageLists = [];
+    }
 
     return {
         URL: url,
         URLPaths: [URLpaths[1], URLpaths[2]],
         downloadDirectory: downloadFolder,
-        imageURLs: downloadALL,
+        imageURLs: imageCompleteLists,
     };
 };
 
