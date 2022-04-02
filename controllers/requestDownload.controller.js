@@ -25,8 +25,8 @@ const requestDownloadController = async (req, res) => {
 
     if (
         (downloadSessionDB[urlString].latestUpdate === null) ||
-        (downloadSessionDB[urlString].inprogress === false && ((new Date(downloadSessionDB[urlString].latestUpdate).valueOf() - new Date().valueOf()) > 300000)) ||
-        (downloadSessionDB[urlString].status === 'error' && ((new Date(downloadSessionDB[urlString].latestUpdate).valueOf() - new Date().valueOf()) > 100000))
+        (downloadSessionDB[urlString].inprogress === false && ((new Date().valueOf() - new Date(downloadSessionDB[urlString].latestUpdate).valueOf()) > 300000)) ||
+        (downloadSessionDB[urlString].status === 'error' && ((new Date().valueOf() - new Date(downloadSessionDB[urlString].latestUpdate).valueOf()) > 100000))
     ) {
         downloadSessionDB[urlString].latestUpdate = new Date();
         downloadSessionDB[urlString].status = 'downloading';
@@ -52,7 +52,7 @@ const requestDownloadController = async (req, res) => {
                 downloadSessionDB[urlString].inprogress = false;
             });
 
-        res.status(200).json(downloadSessionDB[urlString]);
+        res.status(200).json({ downloadSessionDB: downloadSessionDB[urlString] });
         return;
     }
     res.status(200).json({ downloadSessionDB: downloadSessionDB[urlString] });
