@@ -154,7 +154,7 @@ const fetchImage = async (imageURL, fileName, axiosConfig, logCallback) => {
     /**
      * @type {import("axios").AxiosRequestConfig}
      */
-     const config = {
+    const config = {
         method: 'get',
         url: imageURL,
         responseType: 'stream',
@@ -431,7 +431,19 @@ const downloadEH = async (url = '', logCallback = (log) => console.log({ data: l
     const URLpaths = new URL(url).pathname.split('/').filter(w => w);
     const downloadFolder = path.join(__dirname, 'img', URLpaths[1], URLpaths[2]);
     // fs.mkdirSync(downloadFolder, { recursive: true, mode: 0o777 })
-    const pageLists = await initPage(url);
+    const pageLists = await initPage(url)
+        .then(r => {
+            if (r.length === 0) {
+                return [{
+
+                    page: '1',
+                    url: url
+                }]
+            } else {
+                return r;
+            }
+        });
+
     if (logCallback) {
         logCallback(
             {
