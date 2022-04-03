@@ -296,15 +296,15 @@ const writeFile = async (imageURL, downloadFolder, fileName, response, logCallba
 const writeInDB = async (url, imageURL, fileName, response) => {
     const newURL = new URL(url);
     const newFileName = `${fileName}.jpeg`;
-    if (!downloadStorageDB[url]) {
-        downloadStorageDB[url] = {
+    if (!downloadStorageDB[newURL.origin + newURL.pathname]) {
+        downloadStorageDB[newURL.origin + newURL.pathname] = {
             aStorage: {},
             tStorage: {}
         };
     }
 
-    downloadStorageDB[newURL.host].tStorage[newFileName] = {
-        url: newURL.host,
+    downloadStorageDB[newURL.origin + newURL.pathname].tStorage[newFileName] = {
+        url: newURL.origin + newURL.pathname,
         imageURL: imageURL,
         steamPipe: response.data,
     };
