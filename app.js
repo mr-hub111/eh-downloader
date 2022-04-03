@@ -294,6 +294,7 @@ const writeFile = async (imageURL, downloadFolder, fileName, response, logCallba
  * @returns The downloadStorageDB object.
  */
 const writeInDB = async (url, imageURL, fileName, response) => {
+    const newURL = new URL(url);
     const newFileName = `${fileName}.jpeg`;
     if (!downloadStorageDB[url]) {
         downloadStorageDB[url] = {
@@ -302,8 +303,8 @@ const writeInDB = async (url, imageURL, fileName, response) => {
         };
     }
 
-    downloadStorageDB[url].tStorage[newFileName] = {
-        url: url,
+    downloadStorageDB[newURL.host].tStorage[newFileName] = {
+        url: newURL.host,
         imageURL: imageURL,
         steamPipe: response.data,
     };
@@ -324,6 +325,9 @@ const writeInDB = async (url, imageURL, fileName, response) => {
  * @returns The file path to the downloaded image.
  */
 const downloadImage = async (url, imageURL = '', downloadFolder, fileName = Date.now().toString(), logCallback) => {
+    if (imageURL === '040') {
+        console.log(imageURL);
+    }
     // const writeFileResult = await writeFile(imageURL, downloadFolder, fileName, await fetchImage(imageURL, fileName, { responseType: 'stream' }, logCallback), logCallback);
     const writeInDBResult = await writeInDB(url, imageURL, fileName, await fetchImage(imageURL, fileName, { responseType: 'arraybuffer' }, logCallback));
     return fileName;
@@ -458,6 +462,9 @@ const downloadEH = async (url = '', logCallback = (log) => console.log({ data: l
 
         for (let idx = 0; idx < responseGallery.pageGalleryDetails.length; idx++) {
             ++imageNumber;
+            if (imageNumber === 40) {
+                console.log(imageNumber);
+            }
             const elementImage = responseGallery.pageGalleryDetails[idx];
             const urlImage = await getImageDetail(elementImage);
             downloadImageLists.push({ imageNumber, urlImage, url: responseGallery.url, galleryIndex: idx });
