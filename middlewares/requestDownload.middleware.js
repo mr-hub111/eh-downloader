@@ -19,6 +19,9 @@ const requestDownloadMiddleware = (req, res, next) => {
             next({ logDate: new Date(), url: req.originalUrl, error: 'query download is mismatch' });
         }
         else {
+            req.query.download = new URL(req.query.download).origin + new URL(req.query.download).pathname;
+            req.query.download = req.query.download.replace(/\/{1}$/, '');
+
             next();
         }
     }
