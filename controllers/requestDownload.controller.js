@@ -10,7 +10,7 @@ const {
  */
 const requestDownloadController = async (req, res) => {
     const url = new URL(req.query.download);
-    const urlString = url.toString();
+    const urlString = url.origin + url.pathname;
     if (!downloadSessionDB[urlString]) {
         downloadSessionDB[urlString] = {
             url: urlString,
