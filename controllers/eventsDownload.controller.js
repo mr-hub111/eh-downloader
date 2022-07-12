@@ -1,5 +1,5 @@
 const archiver = require("archiver");
-const { downloadSessionDB } = require("../engines/immDBs");
+const { downloadStorageDB } = require("../engines/immDBs");
 
 /**
  * @param {import("express").Request} req 
@@ -7,14 +7,14 @@ const { downloadSessionDB } = require("../engines/immDBs");
  */
 const eventsDownloadController = async (req, res) => {
     const url = new URL(req.query.download);
-    const urlString = url.toString();
+    const urlString = url.origin + url.pathname;
 
-    if (downloadSessionDB[urlString]) {
-        if (downloadSessionDB[urlString].tStorage) {
+    if (downloadStorageDB[urlString]) {
+        if (downloadStorageDB[urlString].tStorage) {
             const archive = archiver('zip', {
                 zlib: { level: 9 } // Sets the compression level.
             });
-            const tStorage = downloadSessionDB[urlString].tStorage;
+            const tStorage = downloadStorageDB[urlString].tStorage;
             for (const key in tStorage) {
                 if (Object.hasOwnProperty.call(tStorage, key)) {
                     const element = tStorage[key];
