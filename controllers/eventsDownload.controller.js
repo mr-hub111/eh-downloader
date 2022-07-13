@@ -1,5 +1,6 @@
 const archiver = require("archiver");
 const { downloadStorageDB } = require("../engines/immDBs");
+const utilURLConvert = require("../utils/util.URLConvert");
 
 /**
  * @param {import("express").Request} req 
@@ -7,7 +8,7 @@ const { downloadStorageDB } = require("../engines/immDBs");
  */
 const eventsDownloadController = async (req, res) => {
     const url = new URL(req.query.download);
-    const urlString = url.origin + url.pathname;
+    const urlString = utilURLConvert(url.origin + url.pathname);
 
     if (downloadStorageDB[urlString]) {
         if (downloadStorageDB[urlString].tStorage) {

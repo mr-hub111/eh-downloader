@@ -1,4 +1,5 @@
 const { isString } = require("lodash");
+const utilURLConvert = require("../utils/util.URLConvert");
 
 /**
  * If the query string is not a download URL, then the request is rejected
@@ -19,8 +20,7 @@ const requestDownloadMiddleware = (req, res, next) => {
             next({ logDate: new Date(), url: req.originalUrl, error: 'query download is mismatch' });
         }
         else {
-            req.query.download = new URL(req.query.download).origin + new URL(req.query.download).pathname;
-            req.query.download = req.query.download.replace(/\/{1}$/, '');
+            req.query.download = utilURLConvert(req.query.download);
 
             next();
         }

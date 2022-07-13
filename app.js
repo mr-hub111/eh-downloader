@@ -3,6 +3,7 @@ const cheerio = require('cheerio');
 const path = require('path');
 const fs = require('fs');
 const { downloadStorageDB } = require("./engines/immDBs");
+const utilURLConvert = require('./utils/util.URLConvert');
 
 /**
  * Given a URL, get the page details from the page
@@ -296,15 +297,16 @@ const writeFile = async (imageURL, downloadFolder, fileName, response, logCallba
 const writeInDB = async (url, imageURL, fileName, response) => {
     const newURL = new URL(url);
     const newFileName = `${fileName}.jpeg`;
-    if (!downloadStorageDB[newURL.origin + newURL.pathname]) {
-        downloadStorageDB[newURL.origin + newURL.pathname] = {
+    const urlString = utilURLConvert(newURL.origin + newURL.pathname)
+    if (!downloadStorageDB[urlString]) {
+        downloadStorageDB[urlString] = {
             aStorage: {},
             tStorage: {}
         };
     }
 
-    downloadStorageDB[newURL.origin + newURL.pathname].tStorage[newFileName] = {
-        url: newURL.origin + newURL.pathname,
+    downloadStorageDB[urlString].tStorage[newFileName] = {
+        url: urlString,
         imageURL: imageURL,
         steamPipe: response.data,
     };
@@ -428,6 +430,7 @@ const initPage = async (url = '', pageURLs = [], logCallback) => {
  * @returns The downloadALL is an array of promises. Each promise is a download of an image.
  */
 const downloadEH = async (url = '', logCallback = (log) => console.log({ data: log })) => {
+    url = utilURLConvert(url);
     const URLpaths = new URL(url).pathname.split('/').filter(w => w);
     const downloadFolder = path.join(__dirname, 'img', URLpaths[1], URLpaths[2]);
     // fs.mkdirSync(downloadFolder, { recursive: true, mode: 0o777 })

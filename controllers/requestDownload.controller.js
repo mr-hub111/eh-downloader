@@ -3,6 +3,7 @@ const downloadEH = require("../app");
 const {
     downloadSessionDB,
 } = require("../engines/immDBs");
+const utilURLConvert = require("../utils/util.URLConvert");
 
 /**
  * @param {import("express").Request} req 
@@ -10,7 +11,7 @@ const {
  */
 const requestDownloadController = async (req, res) => {
     const url = new URL(req.query.download);
-    const urlString = url.origin + url.pathname;
+    const urlString = utilURLConvert(url.origin + url.pathname);
     if (!downloadSessionDB[urlString]) {
         downloadSessionDB[urlString] = {
             url: urlString,
